@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+</head>
+<body>
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Library Management System</h1>
+            <p class="subtitle">Manage Books, Readers, and Loans with ease.</p>
+
+            <!-- Form to add a new book -->
+            <div class="box">
+                <h2 class="title is-4">Add a New Book</h2>
+                <form id="addBookForm">
+                    <div class="field">
+                        <label class="label">Title</label>
+                        <div class="control">
+                            <input class="input" type="text" id="title" placeholder="Book Title" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Author</label>
+                        <div class="control">
+                            <input class="input" type="text" id="author" placeholder="Author Name" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Publisher</label>
+                        <div class="control">
+                            <input class="input" type="text" id="publisher" placeholder="Publisher" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Topic</label>
+                        <div class="control">
+                            <input class="input" type="text" id="topic" placeholder="Topic" required>
+                        </div>
+                    </div>
+                    <div class="control">
+                        <button class="button is-primary" type="submit">Add Book</button>
+                    </div>
+                </form>
+                <div id="addBookMessage" class="notification is-success is-hidden mt-3"></div>
+            </div>
+
+            <!-- List of books -->
+            <div class="box">
+                <h2 class="title is-4">Books List</h2>
+                <button class="button is-link" onclick="fetchBooks()">Refresh List</button>
+                <div id="booksList" class="content mt-4"></div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Function to add a new book using the REST API
+        document.getElementById('addBookForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevents the default form submission behavior
+
+            // Collect book data from form fields
+            const bookData = {
+                title: document.getElementById('title').value,
+                author: document.getElementById('author').value,
+                publisher: document.getElementById('publisher').value,
+                topic: document.getElementById('topic').value
+            };
+
+            // Make a POST request to the REST API to add a new book
+            fetch('http://127.0.0.1:3000/books/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(bookData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Book added successfully') {
+                    const messageDiv = document.getElementById('addBookMessage');
+                    messageDiv.textContent = data.message;
+                    messageDiv.classList.remove('is-hidden');
+                    messageDiv.classList.add('is-visible');
+
+                    document.getElementById('addBookForm').reset();
+                    fetchBooks();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to add book.');
+            });
+        });
+
+        function fetchBooks() {
+            fetch('http://127.0.0.1:3000/books/?skip=0&limit=10')
+                .then(response => response.json())
+                .then(data => {
+                    const booksList = document.getElementById('booksList');
+                    booksList.innerHTML = '';
+                    data.forEach(book => {
+                        booksList.innerHTML += `<p><strong>${book.title}</strong> by ${book.author} (Publisher: ${book.publisher}, Topic: ${book.topic})</p>`;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to fetch books.');
+                });
+        }
+    </script>
+</body>
+</html>
